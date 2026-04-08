@@ -1,1 +1,664 @@
-s
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お小遣い最適化</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --border: #e2ddd6;
+    --text: #1a1814;
+    --sub: #7a7368;
+    --accent: #c8602a;
+    --accent2: #2a6c8a;
+    --success: #2e7d52;
+    --pill-bg: #fdf7f0;
+    --shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘Noto Sans JP’, sans-serif;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+padding: 32px 16px 64px;
+}
+
+header {
+text-align: center;
+margin-bottom: 40px;
+}
+
+header h1 {
+font-size: 1.6rem;
+font-weight: 700;
+letter-spacing: 0.04em;
+color: var(–text);
+}
+
+header p {
+font-size: 0.82rem;
+color: var(–sub);
+margin-top: 6px;
+font-weight: 300;
+}
+
+.badge {
+display: inline-block;
+background: var(–accent);
+color: #fff;
+font-size: 0.65rem;
+font-family: ‘DM Mono’, monospace;
+padding: 2px 8px;
+border-radius: 20px;
+letter-spacing: 0.08em;
+margin-bottom: 10px;
+}
+
+.card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 24px;
+max-width: 680px;
+margin: 0 auto 20px;
+box-shadow: var(–shadow);
+}
+
+.section-title {
+font-size: 0.78rem;
+font-weight: 700;
+letter-spacing: 0.1em;
+color: var(–sub);
+text-transform: uppercase;
+margin-bottom: 14px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.section-title::after {
+content: ‘’;
+flex: 1;
+height: 1px;
+background: var(–border);
+}
+
+/* Budget input */
+.budget-row {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.budget-row label {
+font-size: 0.88rem;
+color: var(–sub);
+white-space: nowrap;
+}
+
+.budget-input {
+flex: 1;
+font-family: ‘DM Mono’, monospace;
+font-size: 1.5rem;
+font-weight: 500;
+border: none;
+border-bottom: 2px solid var(–accent);
+background: transparent;
+color: var(–accent);
+padding: 4px 2px;
+outline: none;
+width: 100%;
+text-align: right;
+}
+
+.budget-input::placeholder { color: #d4b8a8; }
+
+/* Items */
+.item-list { display: flex; flex-direction: column; gap: 10px; }
+
+.item-row {
+display: grid;
+grid-template-columns: 1fr auto auto auto;
+gap: 8px;
+align-items: center;
+background: var(–pill-bg);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 12px;
+animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateY(-6px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.item-row input[type=“text”] {
+font-family: ‘Noto Sans JP’, sans-serif;
+font-size: 0.88rem;
+border: none;
+background: transparent;
+color: var(–text);
+outline: none;
+min-width: 0;
+}
+
+.item-row input[type=“text”]::placeholder { color: #c0b9b0; }
+
+.item-num {
+font-family: ‘DM Mono’, monospace;
+font-size: 0.82rem;
+color: var(–text);
+border: none;
+background: white;
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 4px 6px;
+width: 72px;
+outline: none;
+text-align: right;
+}
+
+.item-num:focus { border-color: var(–accent2); }
+
+.priority-select {
+font-family: ‘DM Mono’, monospace;
+font-size: 0.8rem;
+border: 1px solid var(–border);
+background: white;
+border-radius: 6px;
+padding: 4px 6px;
+outline: none;
+cursor: pointer;
+color: var(–text);
+}
+
+.priority-select:focus { border-color: var(–accent); }
+
+.del-btn {
+background: none;
+border: none;
+cursor: pointer;
+color: #c0b9b0;
+font-size: 1rem;
+padding: 2px 4px;
+transition: color 0.15s;
+}
+.del-btn:hover { color: var(–accent); }
+
+.add-btn {
+width: 100%;
+margin-top: 12px;
+background: none;
+border: 1.5px dashed var(–border);
+border-radius: 8px;
+padding: 10px;
+font-family: ‘Noto Sans JP’, sans-serif;
+font-size: 0.84rem;
+color: var(–sub);
+cursor: pointer;
+transition: all 0.15s;
+}
+.add-btn:hover { border-color: var(–accent2); color: var(–accent2); background: #f0f6fa; }
+
+/* column headers */
+.col-headers {
+display: grid;
+grid-template-columns: 1fr auto auto auto;
+gap: 8px;
+padding: 0 12px;
+margin-bottom: 6px;
+}
+.col-headers span {
+font-size: 0.68rem;
+color: var(–sub);
+letter-spacing: 0.06em;
+text-align: right;
+}
+.col-headers span:first-child { text-align: left; }
+
+/* Run button */
+.run-btn {
+display: block;
+width: 100%;
+max-width: 680px;
+margin: 0 auto 20px;
+padding: 14px;
+background: var(–accent);
+color: white;
+border: none;
+border-radius: 10px;
+font-family: ‘Noto Sans JP’, sans-serif;
+font-size: 1rem;
+font-weight: 700;
+letter-spacing: 0.06em;
+cursor: pointer;
+transition: background 0.15s, transform 0.1s;
+box-shadow: 0 2px 8px rgba(200,96,42,0.3);
+}
+.run-btn:hover { background: #b5521f; transform: translateY(-1px); }
+.run-btn:active { transform: translateY(0); }
+
+/* Results */
+#result { display: none; }
+
+.result-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+margin-bottom: 18px;
+flex-wrap: wrap;
+gap: 10px;
+}
+
+.result-stat {
+text-align: center;
+}
+
+.result-stat .val {
+font-family: ‘DM Mono’, monospace;
+font-size: 1.6rem;
+font-weight: 500;
+color: var(–accent);
+display: block;
+}
+
+.result-stat .lbl {
+font-size: 0.72rem;
+color: var(–sub);
+letter-spacing: 0.06em;
+}
+
+.result-stat.green .val { color: var(–success); }
+.result-stat.blue .val { color: var(–accent2); }
+
+.divider { width: 1px; background: var(–border); align-self: stretch; }
+
+/* Result items */
+.result-list { display: flex; flex-direction: column; gap: 8px; }
+
+.result-item {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 14px;
+background: #f8fdf9;
+border: 1px solid #c5e8d0;
+border-radius: 8px;
+animation: fadeUp 0.25s ease both;
+}
+
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(8px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.result-item .rank {
+font-family: ‘DM Mono’, monospace;
+font-size: 0.72rem;
+color: var(–success);
+background: #e4f5ea;
+border-radius: 50%;
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+
+.result-item .name {
+flex: 1;
+font-size: 0.9rem;
+font-weight: 500;
+}
+
+.result-item .cost {
+font-family: ‘DM Mono’, monospace;
+font-size: 0.85rem;
+color: var(–sub);
+}
+
+.p-badge {
+font-size: 0.65rem;
+font-family: ‘DM Mono’, monospace;
+padding: 2px 7px;
+border-radius: 20px;
+color: white;
+flex-shrink: 0;
+}
+.p-1,.p-2,.p-3,.p-4,.p-5 { background: #c0392b; }
+.p-6,.p-7,.p-8,.p-9,.p-10 { background: #e67e22; }
+.p-11,.p-12,.p-13,.p-14,.p-15 { background: #2980b9; }
+.p-16,.p-17,.p-18,.p-19,.p-20 { background: #bdc3c7; color: #555; }
+
+.no-result {
+text-align: center;
+color: var(–sub);
+font-size: 0.85rem;
+padding: 20px;
+}
+
+.skip-list { margin-top: 14px; }
+.skip-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 8px 12px;
+background: #fdf5f5;
+border: 1px solid #f0d8d8;
+border-radius: 8px;
+margin-bottom: 6px;
+font-size: 0.82rem;
+color: var(–sub);
+animation: fadeUp 0.25s ease both;
+}
+
+.skip-item .name { flex: 1; }
+.skip-item .cost { font-family: ‘DM Mono’, monospace; font-size: 0.8rem; }
+
+/* dp note */
+.dp-note {
+font-size: 0.72rem;
+color: var(–sub);
+text-align: center;
+margin-top: 6px;
+font-family: ‘DM Mono’, monospace;
+letter-spacing: 0.04em;
+}
+
+.error-msg {
+color: var(–accent);
+font-size: 0.82rem;
+text-align: center;
+padding: 8px;
+}
+
+/* priority legend */
+.legend {
+display: flex;
+gap: 8px;
+flex-wrap: wrap;
+margin-top: 10px;
+}
+.legend-item {
+display: flex;
+align-items: center;
+gap: 4px;
+font-size: 0.7rem;
+color: var(–sub);
+}
+.legend-dot {
+width: 8px; height: 8px;
+border-radius: 50%;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="badge">DYNAMIC PROGRAMMING</div>
+  <h1>💴 お小遣い最適化</h1>
+  <p>予算と優先度を入力して、最適な使い方を動的計画法で算出します</p>
+</header>
+
+<!-- Budget -->
+
+<div class="card">
+  <div class="section-title">予算</div>
+  <div class="budget-row">
+    <label>¥</label>
+    <input class="budget-input" type="number" id="budget" placeholder="10000" min="1">
+  </div>
+</div>
+
+<!-- Items -->
+
+<div class="card">
+  <div class="section-title">使いたいもの</div>
+  <div class="col-headers">
+    <span>アイテム名</span>
+    <span>金額 (¥)</span>
+    <span>優先度</span>
+    <span></span>
+  </div>
+  <div class="item-list" id="itemList"></div>
+  <button class="add-btn" onclick="addItem()">＋ アイテムを追加</button>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#c0392b"></div>1位: 最重要</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c0392b" style="opacity:0.6"></div>2〜5位: 高い</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e67e22"></div>6〜10位: やや高い</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2980b9"></div>11〜15位: 普通</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#bdc3c7"></div>16〜20位: あれば</div>
+  </div>
+</div>
+
+<button class="run-btn" onclick="optimize()">🧮 最適化する</button>
+
+<!-- Results -->
+
+<div class="card" id="result">
+  <div class="section-title">最適化結果</div>
+
+  <div class="result-header" id="resultStats"></div>
+
+  <div id="resultItems"></div>
+  <div class="dp-note" id="dpNote"></div>
+</div>
+
+<script>
+let itemCount = 0;
+
+function addItem(name='', cost='', priority=3) {
+  itemCount++;
+  const id = itemCount;
+  const list = document.getElementById('itemList');
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.id = 'item-' + id;
+  const options = Array.from({length: 20}, (_, i) => {
+    const v = i + 1;
+    const label = v === 1 ? '最重要' : v <= 5 ? '高い' : v <= 10 ? '普通' : v <= 15 ? '低い' : 'あれば';
+    return `<option value="${v}" ${priority==v?'selected':''}>${v}位　${label}</option>`;
+  }).join('');
+  row.innerHTML = `
+    <input type="text" placeholder="例: 本、映画、ランチ" value="${name}" class="item-name">
+    <input type="number" class="item-num item-cost" placeholder="0" min="1" value="${cost}">
+    <select class="priority-select item-priority">${options}</select>
+    <button class="del-btn" onclick="removeItem(${id})" title="削除">✕</button>
+  `;
+  list.appendChild(row);
+}
+
+function removeItem(id) {
+  const el = document.getElementById('item-' + id);
+  if (el) el.remove();
+}
+
+// ===== Dynamic Programming: 0/1 Knapsack =====
+// Equivalent Python logic:
+// dp[i][w] = max priority achievable with first i items and budget w
+// if cost[i] <= w: dp[i][w] = max(dp[i-1][w], dp[i-1][w-cost[i]] + value[i])
+// else:            dp[i][w] = dp[i-1][w]
+function knapsack(budget, items) {
+  const n = items.length;
+  // Use 1D DP array (space-optimized) — same as Python's space-optimized version
+  // dp[w] = max value achievable with budget w
+  const dp = new Array(budget + 1).fill(0);
+
+  // Track choices for backtracking
+  // keep[i][w] = true if item i is selected when budget is w
+  const keep = Array.from({length: n}, () => new Array(budget + 1).fill(false));
+  const dpFull = Array.from({length: n + 1}, () => new Array(budget + 1).fill(0));
+
+  for (let i = 0; i < n; i++) {
+    const {cost, value} = items[i];
+    for (let w = 0; w <= budget; w++) {
+      dpFull[i+1][w] = dpFull[i][w];
+      if (cost <= w && dpFull[i][w - cost] + value > dpFull[i][w]) {
+        dpFull[i+1][w] = dpFull[i][w - cost] + value;
+        keep[i][w] = true;
+      }
+    }
+  }
+
+  // Backtrack to find selected items
+  const selected = [];
+  let w = budget;
+  for (let i = n - 1; i >= 0; i--) {
+    if (keep[i][w]) {
+      selected.push(i);
+      w -= items[i].cost;
+    }
+  }
+
+  return { maxValue: dpFull[n][budget], selected, remainingBudget: w };
+}
+
+function optimize() {
+  const budgetEl = document.getElementById('budget');
+  const budget = parseInt(budgetEl.value);
+
+  if (!budget || budget <= 0) {
+    alert('予算を入力してください');
+    return;
+  }
+
+  const rows = document.querySelectorAll('.item-row');
+  if (rows.length === 0) {
+    alert('アイテムを追加してください');
+    return;
+  }
+
+  const items = [];
+  rows.forEach((row, idx) => {
+    const name = row.querySelector('.item-name').value.trim() || `アイテム${idx+1}`;
+    const cost = parseInt(row.querySelector('.item-cost').value) || 0;
+    const priority = parseInt(row.querySelector('.item-priority').value);
+    if (cost > 0) {
+      // Convert priority to value: priority 1 = value 500, 2=200, 3=80, 4=30, 5=10
+      const value = 21 - priority; // 1→20点, 20→1点
+      items.push({ name, cost, priority, value });
+    }
+  });
+
+  if (items.length === 0) {
+    alert('有効なアイテムがありません（金額を入力してください）');
+    return;
+  }
+
+  const result = knapsack(budget, items);
+  const selectedSet = new Set(result.selected);
+  const selectedItems = result.selected.map(i => items[i]);
+  const skippedItems = items.filter((_, i) => !selectedSet.has(i));
+  const totalCost = selectedItems.reduce((s, it) => s + it.cost, 0);
+
+  showResult(budget, selectedItems, skippedItems, totalCost, result.remainingBudget);
+}
+
+function showResult(budget, selected, skipped, totalCost, remaining) {
+  const resultEl = document.getElementById('result');
+  resultEl.style.display = 'block';
+
+  // Stats
+  const usageRate = Math.round(totalCost / budget * 100);
+  document.getElementById('resultStats').innerHTML = `
+    <div class="result-stat">
+      <span class="val">¥${budget.toLocaleString()}</span>
+      <span class="lbl">予算</span>
+    </div>
+    <div class="divider"></div>
+    <div class="result-stat green">
+      <span class="val">¥${totalCost.toLocaleString()}</span>
+      <span class="lbl">使用額</span>
+    </div>
+    <div class="divider"></div>
+    <div class="result-stat blue">
+      <span class="val">¥${remaining.toLocaleString()}</span>
+      <span class="lbl">残り</span>
+    </div>
+    <div class="divider"></div>
+    <div class="result-stat">
+      <span class="val">${usageRate}%</span>
+      <span class="lbl">予算消化率</span>
+    </div>
+  `;
+
+  // Sort selected by priority
+  const sorted = [...selected].sort((a, b) => a.priority - b.priority);
+
+  let html = '<div class="result-list">';
+  if (sorted.length === 0) {
+    html += '<div class="no-result">予算内に収まるアイテムがありません</div>';
+  } else {
+    sorted.forEach((item, i) => {
+      html += `
+        <div class="result-item" style="animation-delay:${i*0.06}s">
+          <div class="rank">${i+1}</div>
+          <div class="name">${escHtml(item.name)}</div>
+          <span class="p-badge p-${item.priority}">優先度${item.priority}</span>
+          <div class="cost">¥${item.cost.toLocaleString()}</div>
+        </div>
+      `;
+    });
+  }
+  html += '</div>';
+
+  if (skipped.length > 0) {
+    html += `<div class="section-title" style="margin-top:20px">予算オーバーで断念</div>`;
+    html += '<div class="skip-list">';
+    skipped.forEach((item, i) => {
+      html += `
+        <div class="skip-item" style="animation-delay:${(sorted.length + i)*0.06}s">
+          <div class="name">✕ ${escHtml(item.name)}</div>
+          <span class="p-badge p-${item.priority}" style="opacity:0.6">優先度${item.priority}</span>
+          <div class="cost">¥${item.cost.toLocaleString()}</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('resultItems').innerHTML = html;
+  document.getElementById('dpNote').textContent =
+    `0/1ナップサック問題（動的計画法）: ${items_count_for_note} items × ¥${budget.toLocaleString()} budget`;
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+let items_count_for_note = 0;
+
+// Override optimize to capture item count for note
+const _origOptimize = optimize;
+window.optimize = function() {
+  const rows = document.querySelectorAll('.item-row');
+  items_count_for_note = rows.length;
+  _origOptimize();
+};
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Preload sample items
+addItem('本・参考書', 2500, 4);
+addItem('映画チケット', 1800, 8);
+addItem('ランチ奮発', 3000, 5);
+addItem('スイーツ', 800, 12);
+addItem('交通費', 1200, 2);
+addItem('雑誌', 600, 16);
+addItem('コーヒー豆', 1500, 9);
+addItem('ゲームDLC', 2000, 14);
+</script>
+
+</body>
+</html>
